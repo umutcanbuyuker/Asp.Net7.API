@@ -43,5 +43,7 @@ namespace Asp.Net7.API.Core.Repositories
             _dbSet.Update(entity);
             return true;
         }
+
+
     }
 }

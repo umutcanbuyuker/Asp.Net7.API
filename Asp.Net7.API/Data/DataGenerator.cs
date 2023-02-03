@@ -39,21 +39,18 @@ namespace Asp.Net7.API.Data
             _context.toDos.AddRange(
                     new ToDo
                     {
-                        //Id = 1,
                         Name = "SignalR",
                         Category = "iş",
                         PublishDate = new DateTime(2023, 02, 10)
                     },
                     new ToDo
                     {
-                        //Id = 2,
                         Name = "Redis",
                         Category = "iş",
                         PublishDate = new DateTime(2023, 02, 20)
                     },
                     new ToDo
                     {
-                        //Id = 3,
                         Name = "RabbitMQ",
                         Category = "iş",
                         PublishDate = new DateTime(2023, 02, 25)
