@@ -57,7 +57,7 @@ namespace Asp.Net7.API.Controllers
         {
             var toDo = await _unitOfWork.ToDos.GetById(id);
 
-            if (toDo == null) return NotFound();
+            if (toDo == null || id <= 0) return NotFound();
 
             await _unitOfWork.ToDos.Delete(toDo);
             await _unitOfWork.CompleteAsync();
@@ -76,7 +76,8 @@ namespace Asp.Net7.API.Controllers
         }
 
 
-        [HttpPatch("{id}")]
+        [HttpPatch]
+        [Route("{id:int}/UpdatePartial")]
         public async Task<IActionResult> UpdateToDo(int id,JsonPatchDocument<ToDo> patchDocument)
         {
             if (patchDocument == null || id <= 0)
