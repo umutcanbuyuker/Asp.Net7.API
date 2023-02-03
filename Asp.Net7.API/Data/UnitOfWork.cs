@@ -6,7 +6,6 @@ namespace Asp.Net7.API.Data
     public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly ApiDbContext _context;
-        private readonly ILogger _logger;
         public IToDoRepository ToDos { get; private set; }
         public UnitOfWork(ApiDbContext context, ILoggerFactory loggerFactory)
         {

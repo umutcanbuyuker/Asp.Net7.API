@@ -1,6 +1,9 @@
 ﻿using Asp.Net7.API.Core;
 using Asp.Net7.API.Data;
+using Asp.Net7.API.DTOs.Incoming;
+using Asp.Net7.API.DTOs.Outgoing;
 using Asp.Net7.API.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,14 +11,16 @@ using Microsoft.EntityFrameworkCore;
 namespace Asp.Net7.API.Controllers
 {
     [Route("[controller]")]
-    [ApiController]
+    [ApiController] // attribute ile post kısmında parametrenin request body'sinde bulunacağını en baştan belirtiyoruz.
     public class ToDoController : ControllerBase
     {
         // tüm komutlarımızı uow'den çekeceğiz instance yaptık
         private readonly IUnitOfWork _unitOfWork;
-        public ToDoController(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+        public ToDoController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -23,90 +28,136 @@ namespace Asp.Net7.API.Controllers
         {
             try
             {
-                return Ok(await _unitOfWork.ToDos.All());
+                var allTodos = await _unitOfWork.ToDos.All();
+                var _toDoDto = _mapper.Map<IEnumerable<ToDoDto>>(allTodos);
+                return Ok(_toDoDto);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                return BadRequest(e.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
             }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var todo = await _unitOfWork.ToDos.GetById(id);
-            if (todo == null) return NotFound();
-            return Ok(todo);
+            try
+            {
+                var todo = await _unitOfWork.ToDos.GetById(id);
+                if (todo == null) return NotFound();
+                return Ok(todo);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving data from the database");
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddToDo(ToDo toDo)
+        public async Task<IActionResult> AddToDo(ToDoForCreatedDto toDo)
         {
-            // Listeye eklenecek toDo modelimizin zorunlu alan kontrolünü yaptırarak uyarı mesajı döndük.
-            if (toDo.Name == null || toDo.Category == null)
+            try
             {
-                return BadRequest("isim veya kategori boş geçilemez");
+                if (toDo == null) return BadRequest();
+
+                // Listeye eklenecek toDo modelimizin zorunlu alan kontrolünü yaptırarak uyarı mesajı döndük.
+                if (toDo.Name == null || toDo.Category == null)
+                {
+                    return BadRequest("Name or category cannot be empty");
+                }
+
+                var _toDo = _mapper.Map<ToDo>(toDo); //automapper
+
+                await _unitOfWork.ToDos.Add(_toDo);
+                await _unitOfWork.CompleteAsync();
+                return Created("Added to to-do list", _toDo); // Created result'ı In-Memory Database kullandığımız için gösterilemeyecektir.
             }
-            await _unitOfWork.ToDos.Add(toDo);
-            await _unitOfWork.CompleteAsync();
-            return Created("Yapılacaklar listesine eklendi", toDo); // Created result'ı In-Memory Database kullandığımız için gösterilemeyecektir.
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error creating To-Do");
+            }
         }
 
         [HttpDelete]
         public async Task<IActionResult> DeleteToDo(int id)
         {
-            var toDo = await _unitOfWork.ToDos.GetById(id);
+            try
+            {
+                var toDo = await _unitOfWork.ToDos.GetById(id);
 
-            if (toDo == null || id <= 0) return NotFound();
+                if (toDo == null || id <= 0) return NotFound($"To-Do with Id = {id} not found");
 
-            await _unitOfWork.ToDos.Delete(toDo);
-            await _unitOfWork.CompleteAsync();
-            return Ok();
+                await _unitOfWork.ToDos.Delete(toDo);
+                await _unitOfWork.CompleteAsync();
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting data");
+            }
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateToDo(ToDo toDo)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateToDo(int id, ToDo toDo)
         {
-            var existToDo = await _unitOfWork.ToDos.GetById(toDo.Id);
-            if (existToDo == null) return NotFound();
+            try
+            {
+                if (id != toDo.Id) return BadRequest("Todo Id mismatch");
 
-            await _unitOfWork.ToDos.Update(toDo);
-            await _unitOfWork.CompleteAsync();
-            return NoContent();
+                var existToDo = await _unitOfWork.ToDos.GetById(toDo.Id);
+                if (existToDo == null) return NotFound($"Todo with Id = {id} not found");
+
+                await _unitOfWork.ToDos.Update(toDo);
+                await _unitOfWork.CompleteAsync();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error updating data");
+            }
         }
 
 
         [HttpPatch]
         [Route("{id:int}/UpdatePartial")]
-        public async Task<IActionResult> UpdateToDo(int id, [FromBody] JsonPatchDocument<ToDo> patchDocument) 
+        public async Task<IActionResult> UpdateToDo(int id, JsonPatchDocument<ToDo> patchDocument)
         {
-            if (patchDocument == null || id <= 0)
-                return BadRequest();
-            var existToDo = await _unitOfWork.ToDos.GetById(id);
-            if (existToDo == null) 
-                return NotFound();
-
-            var toDoDto = new ToDo
+            try
             {
-                Id = existToDo.Id,
-                Name = existToDo.Name,
-                Category = existToDo.Category,
-                PublishDate = existToDo.PublishDate,
-            };
+                if (patchDocument == null || id <= 0)
+                    return BadRequest();
+                var existToDo = await _unitOfWork.ToDos.GetById(id);
+                if (existToDo == null)
+                    return NotFound();
 
-            patchDocument.ApplyTo(toDoDto,ModelState);
+                var toDoDto = new ToDo
+                {
+                    Id = existToDo.Id,
+                    Name = existToDo.Name,
+                    Category = existToDo.Category,
+                    PublishDate = existToDo.PublishDate,
+                };
 
-            if (!ModelState.IsValid)
-                return BadRequest();
-            
-            existToDo.Name = toDoDto.Name;
+                patchDocument.ApplyTo(toDoDto, ModelState);
 
-            await _unitOfWork.CompleteAsync();
-            return NoContent();
+                if (!ModelState.IsValid)
+                    return BadRequest();
+
+                existToDo.Name = toDoDto.Name;
+
+                await _unitOfWork.CompleteAsync();
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error patching data");
+            }
         }
 
+        //Ek endpointler.
+
         [HttpGet("[action]")]
-        public async Task<IActionResult> GetAscending()
+        public async Task<IActionResult> GetAscendingToDo()
         {
             var todo = await _unitOfWork.ToDos.AscendingName();
             if (todo == null) return NotFound();
