@@ -11,13 +11,14 @@ namespace Asp.Net7.API.Core.Repositories
 
         }
 
+        //Default Ascending
         //ToDo controllerına özel kişiselliştirilebilir crud metodlarımızı burada tanımlayabiliriz.
         // Sıralama işlemini orderBy ile düzenleyebiliriz
         public override async Task<IEnumerable<ToDo>> All()
         {
             try
             {
-                return await _context.toDos.OrderBy(x => x.Id).ToListAsync(); // Custom Sıralama Id-Kategori-Tarih ' göre sıralamalar yapabiliriz
+                return await _context.toDos.OrderBy(x => x.Category).ToListAsync(); // Default Sıralama Id-Kategori-Tarih ' göre sıralamalar yapabiliriz
             }
             catch (Exception e)
             {
@@ -25,6 +26,19 @@ namespace Asp.Net7.API.Core.Repositories
                 throw;
             }
         }
-   
+
+        public async Task<IEnumerable<ToDo>> AscendingName()
+        {
+            try
+            {
+                return await _context.toDos.OrderBy(x => x.Name).ToListAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+        
     }
 }

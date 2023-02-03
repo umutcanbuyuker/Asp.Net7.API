@@ -14,7 +14,7 @@ namespace Asp.Net7.API.Controllers
         // tüm komutlarımızı uow'den çekeceğiz instance yaptık
         private readonly IUnitOfWork _unitOfWork;
         public ToDoController(IUnitOfWork unitOfWork)
-        { 
+        {
             _unitOfWork = unitOfWork;
         }
 
@@ -34,22 +34,22 @@ namespace Asp.Net7.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-                var todo = await _unitOfWork.ToDos.GetById(id);
-                if (todo == null) return NotFound();
-                return Ok(todo);
+            var todo = await _unitOfWork.ToDos.GetById(id);
+            if (todo == null) return NotFound();
+            return Ok(todo);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddToDo(ToDo toDo)
         {
-                // Listeye eklenecek toDo modelimizin zorunlu alan kontrolünü yaptırarak uyarı mesajı döndük.
-                if (toDo.Name == null || toDo.Category == null)
-                {
-                    return BadRequest("isim veya kategori boş geçilemez");
-                }
-                await _unitOfWork.ToDos.Add(toDo);
-                await _unitOfWork.CompleteAsync();
-                return Created("Yapılacaklar listesine eklendi",toDo); // Created result'ı In-Memory Database kullandığımız için gösterilemeyecektir.
+            // Listeye eklenecek toDo modelimizin zorunlu alan kontrolünü yaptırarak uyarı mesajı döndük.
+            if (toDo.Name == null || toDo.Category == null)
+            {
+                return BadRequest("isim veya kategori boş geçilemez");
+            }
+            await _unitOfWork.ToDos.Add(toDo);
+            await _unitOfWork.CompleteAsync();
+            return Created("Yapılacaklar listesine eklendi", toDo); // Created result'ı In-Memory Database kullandığımız için gösterilemeyecektir.
         }
 
         [HttpDelete]
@@ -78,7 +78,7 @@ namespace Asp.Net7.API.Controllers
 
         [HttpPatch]
         [Route("{id:int}/UpdatePartial")]
-        public async Task<IActionResult> UpdateToDo(int id,JsonPatchDocument<ToDo> patchDocument)
+        public async Task<IActionResult> UpdateToDo(int id, [FromBody] JsonPatchDocument<ToDo> patchDocument) 
         {
             if (patchDocument == null || id <= 0)
                 return BadRequest();
@@ -103,6 +103,14 @@ namespace Asp.Net7.API.Controllers
 
             await _unitOfWork.CompleteAsync();
             return NoContent();
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetAscending()
+        {
+            var todo = await _unitOfWork.ToDos.AscendingName();
+            if (todo == null) return NotFound();
+            return Ok(todo);
         }
     }
 }
