@@ -35,7 +35,9 @@ namespace Asp.Net7.API.Core.Repositories
 
         public virtual async Task<T?> GetById(int id)
         {
-            return await _dbSet.FindAsync(id);
+            var entity = await _dbSet.FindAsync(id);
+            _dbSet.Entry(entity).State = EntityState.Detached; // Aynı oturumda Aynı class'ın nesnesine erişip üzerinde işlem yapıp ardından Update yaparsak hata alırız. Bu yüzden entity nesnesi üzerindeki değişikliklerin takip edilmemesini bu şekilde sağlayabilirsiniz.
+            return entity;
         }
 
         public virtual async Task<bool> Update(T entity)

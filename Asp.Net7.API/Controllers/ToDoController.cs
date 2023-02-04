@@ -11,16 +11,18 @@ using Microsoft.EntityFrameworkCore;
 namespace Asp.Net7.API.Controllers
 {
     [Route("[controller]")]
-    [ApiController] // attribute ile post kısmında parametrenin request body'sinde bulunacağını en baştan belirtiyoruz.
+    [ApiController] // attribute ile post kısmında parametrenin request body'sinde bulunacağını en baştan default olarak gelir.
     public class ToDoController : ControllerBase
     {
-        // tüm komutlarımızı uow'den çekeceğiz instance yaptık
+        // tüm metotlarımızı uow'den çekeceğiz instance yaptık
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        public ToDoController(IUnitOfWork unitOfWork, IMapper mapper)
+        private readonly ApiDbContext _context;
+        public ToDoController(IUnitOfWork unitOfWork, IMapper mapper, ApiDbContext context)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _context = context;
         }
 
         [HttpGet]
@@ -29,7 +31,7 @@ namespace Asp.Net7.API.Controllers
             try
             {
                 var allTodos = await _unitOfWork.ToDos.All();
-                var _toDoDto = _mapper.Map<IEnumerable<ToDoDto>>(allTodos);
+                var _toDoDto = _mapper.Map<IEnumerable<ToDoDto>>(allTodos); // Tüm ToDo listesini mapper kullanarak ToDoDto formatına çevirdik.
                 return Ok(_toDoDto);
             }
             catch (Exception)
@@ -38,8 +40,8 @@ namespace Asp.Net7.API.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        [HttpGet("id")]
+        public async Task<IActionResult> Get([FromQuery] int id)
         {
             try
             {
@@ -97,30 +99,31 @@ namespace Asp.Net7.API.Controllers
             }
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateToDo(int id, ToDo toDo)
+        [HttpPut("id")]
+        public async Task<IActionResult> UpdateToDo(int id, ToDoForUpdatedDto toDo)
         {
             try
             {
                 if (id != toDo.Id) return BadRequest("Todo Id mismatch");
 
-                var existToDo = await _unitOfWork.ToDos.GetById(toDo.Id);
-                if (existToDo == null) return NotFound($"Todo with Id = {id} not found");
+                var existToDo = await _unitOfWork.ToDos.GetById(id);
+                if (existToDo == null) return NotFound($"Todo {id} not found");
 
-                await _unitOfWork.ToDos.Update(toDo);
+                var _toDo = _mapper.Map<ToDo>(toDo);
+                await _unitOfWork.ToDos.Update(_toDo);
                 await _unitOfWork.CompleteAsync();
                 return NoContent();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Error updating data");
+                return StatusCode(StatusCodes.Status500InternalServerError, e);
             }
         }
 
 
         [HttpPatch]
-        [Route("{id:int}/UpdatePartial")]
-        public async Task<IActionResult> UpdateToDo(int id, JsonPatchDocument<ToDo> patchDocument)
+        [Route("{id:int}")]
+        public async Task<IActionResult> UpdateToDoPatch(int id, JsonPatchDocument<ToDo> patchDocument)
         {
             try
             {

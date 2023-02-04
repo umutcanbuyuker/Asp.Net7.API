@@ -9,6 +9,8 @@ namespace Asp.Net7.API.Profiles
     {
         public ToDoProfile()
         {
+            // Gelen Dto'lar
+
             CreateMap<ToDoForCreatedDto, ToDo>()
                 .ForMember(
                     dest => dest.Name,
@@ -19,6 +21,20 @@ namespace Asp.Net7.API.Profiles
                 .ForMember(
                     dest => dest.PublishDate,
                     opt => opt.MapFrom(src => DateTime.Now));
+
+            CreateMap<ToDoForUpdatedDto, ToDo>()
+                .ForMember(
+                    dest => dest.Name,
+                    opt => opt.MapFrom(src => src.Name))
+                .ForMember(
+                    dest => dest.Category,
+                    opt => opt.MapFrom(src => src.Category))
+                .ForMember(
+                    dest => dest.PublishDate,
+                    opt => opt.MapFrom(src => DateTime.Now));
+              
+            // Giden Dto'lar
+
             CreateMap<ToDo, ToDoDto>()
                 .ForMember(
                     dest => dest.Id,
