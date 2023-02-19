@@ -1,5 +1,4 @@
-﻿using Asp.Net7.API.DTOs.Incoming;
-using Asp.Net7.API.DTOs.Outgoing;
+﻿using Asp.Net7.API.DTOs;
 using Asp.Net7.API.Models;
 using AutoMapper;
 

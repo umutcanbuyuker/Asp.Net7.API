@@ -1,4 +1,4 @@
-﻿namespace Asp.Net7.API.DTOs.Incoming
+﻿namespace Asp.Net7.API.DTOs
 {
     public class ToDoForCreatedDto
     {

@@ -1,4 +1,4 @@
-﻿namespace Asp.Net7.API.DTOs.Outgoing
+﻿namespace Asp.Net7.API.DTOs
 {
     public class ToDoDto
     {

@@ -1,6 +1,8 @@
 
 using Asp.Net7.API.Core;
 using Asp.Net7.API.Data;
+using Asp.Net7.API.Middlewares;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +43,8 @@ using (var scope = app.Services.CreateScope())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseExceptionHandleMiddle();
 
 app.MapControllers();
 

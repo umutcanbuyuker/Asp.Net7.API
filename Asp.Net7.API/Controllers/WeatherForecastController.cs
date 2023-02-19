@@ -16,9 +16,11 @@ namespace Asp.Net7.API.Controllers
         }
 
         [HttpGet(Name = "xx")]
-        public IActionResult Get()
+        public string Get()
         {
-            return Ok();
+            int a = 0;
+            int b = 10 / a; 
+            return "ok";
         }
     }
 }
