@@ -1,4 +1,7 @@
-﻿namespace Asp.Net7.API.Middlewares
+﻿using Newtonsoft.Json;
+using System.Net;
+
+namespace Asp.Net7.API.Middlewares
 {
     public class ExceptionHandleMiddleware
     {
@@ -15,11 +18,22 @@
             {
                 await _next(httpContext);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
-                // Burada exception error handling yapan custom bir metot yazacağız.
+                // Burada exception error handling yapan custom bir metot yazıyoruz.
+                await HandleException(httpContext, ex);
             }
+        }
+
+        private Task HandleException(HttpContext context, Exception ex)
+        {
+            string message = "[Error] HTTP" + context.Request.Method+ " - " + context.Response.StatusCode + "Error Message" + ex.Message + " in ";
+
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+            var result = JsonConvert.SerializeObject(new { error = ex.Message }, Formatting.None);
+            return context.Response.WriteAsync(result);
         }
     }
 }

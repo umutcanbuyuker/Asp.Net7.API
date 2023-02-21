@@ -45,23 +45,13 @@ namespace Asp.Net7.API.Controllers
         {
             if(ModelState.IsValid)
             {
+                var _toDo = _mapper.Map<ToDo>(toDo); //automapper
 
+                await _unitOfWork.ToDos.Add(_toDo);
+                await _unitOfWork.CompleteAsync();
+                return Created("Added to to-do list", _toDo); // Created result'ı In-Memory Database kullandığımız için gösterilemeyecektir.
             }
-
-
-            if (toDo == null) return BadRequest();
-
-            // Listeye eklenecek toDo modelimizin zorunlu alan kontrolünü yaptırarak uyarı mesajı döndük.
-            if (toDo.Name == null || toDo.Category == null)
-            {
-                return BadRequest("Name or category cannot be empty");
-            }
-
-            var _toDo = _mapper.Map<ToDo>(toDo); //automapper
-
-            await _unitOfWork.ToDos.Add(_toDo);
-            await _unitOfWork.CompleteAsync();
-            return Created("Added to to-do list", _toDo); // Created result'ı In-Memory Database kullandığımız için gösterilemeyecektir.
+            return BadRequest();
         }
 
         [HttpDelete]

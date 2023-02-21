@@ -7,20 +7,20 @@ namespace Asp.Net7.API.Validators
     {
         public CreateToDoValidator()
         {
-            RuleFor(t => t.Name)
+            RuleFor(toDo => toDo.Name)
                 .NotEmpty()
                 .NotNull()
                     .WithMessage("Lütfen ToDo adını boş geçmeyiniz.")
                 .MaximumLength(100)
                 .MinimumLength(5)
                     .WithMessage("Lütfen ToDo adını 5 ile 100 karakter arasında giriniz.");
-            RuleFor(t => t.Category)
+            RuleFor(toDo => toDo.Category)
                 .NotEmpty()
                 .NotNull()
-                    .WithMessage("Lütfen ToDo adını boş geçmeyiniz.")
+                    .WithMessage("Lütfen ToDo kategorisini boş geçmeyiniz.")
                 .MaximumLength(40)
-                .MinimumLength(5)
-                    .WithMessage("Lütfen ToDo adını 5 ile 40 karakter arasında giriniz.");
+                .MinimumLength(2)
+                    .WithMessage("Lütfen ToDo kategorisini 2 ile 40 karakter arasında giriniz.");
         }
     }
 }

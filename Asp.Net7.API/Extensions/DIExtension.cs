@@ -7,6 +7,7 @@ namespace Asp.Net7.API.Extensions
 {
     public static class DIExtension
     {
+        // DI container
         public static void AddServiceDI(this IServiceCollection service)
         {
             service.AddScoped<IUnitOfWork, UnitOfWork>();                           //Dependency Injection için scope ekleyerek kullanım ömrü belirledik.
