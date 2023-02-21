@@ -22,12 +22,5 @@
             }
         }
     }
-            // Extension metot
-            public static class ExceptionHandleMiddlewareExtension
-            {
-                public static IApplicationBuilder UseExceptionHandleMiddle(this IApplicationBuilder builder)
-                {
-                    return builder.UseMiddleware<ExceptionHandleMiddleware>();
-                }
-            }
 }
+

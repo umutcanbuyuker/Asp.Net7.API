@@ -5,6 +5,7 @@ using Asp.Net7.API.Models;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Asp.Net7.API.Controllers
 {
@@ -42,6 +43,12 @@ namespace Asp.Net7.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToDo(ToDoForCreatedDto toDo)
         {
+            if(ModelState.IsValid)
+            {
+
+            }
+
+
             if (toDo == null) return BadRequest();
 
             // Listeye eklenecek toDo modelimizin zorunlu alan kontrolünü yaptırarak uyarı mesajı döndük.

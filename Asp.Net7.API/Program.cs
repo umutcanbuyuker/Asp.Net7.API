@@ -1,25 +1,20 @@
 
 using Asp.Net7.API.Core;
-using Asp.Net7.API.Data;
-using Asp.Net7.API.Middlewares;
-using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.EntityFrameworkCore;
+using Asp.Net7.API.Extensions;
+using Asp.Net7.API.Validators;
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddNewtonsoftJson();
+builder.Services.AddControllers().AddNewtonsoftJson().AddFluentValidation(configuration => configuration.RegisterValidatorsFromAssemblyContaining<CreateToDoValidator>());
+
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies()); // AutoMapper
-builder.Services.AddDbContext<ApiDbContext>(options =>
-{
-    options.UseInMemoryDatabase(databaseName: "myToDoDB");
-});
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>(); //Dependency Injection için scope ekleyerek kullaným ömrü belirledik.
-builder.Services.AddScoped<IDataGenerator, DataGenerator>();
+builder.Services.AddServiceDI();
 
 var app = builder.Build();
 
